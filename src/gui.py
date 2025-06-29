@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from src import FileManipulationVariables
+from src.album_cover import set_mp3_covers
 
 
 def run_gui(window_x: int = 400, window_y: int = 300):
@@ -36,14 +37,30 @@ def run_gui(window_x: int = 400, window_y: int = 300):
     folder_select_btn.config(width=20)
     folder_select_btn.pack(pady=5)
     # file selection button (for .jpg or .png image)
+    file_row = tk.Frame(tab1)
+    file_row.pack(pady=5)
+    #
     file_select_btn = ttk.Button(
-        tab1,
+        file_row,
         text='album cover file',
         command=lambda: select_file(btn=file_select_btn, vars=file_info)
         )
     file_select_btn.config(width=20)
-    file_select_btn.pack(pady=5)
+    file_select_btn.pack(side='left', padx=5)
+    # radio buttons for the type of image
+    file_info.image_mime = tk.StringVar(value='image/jpeg')
+    jpeg_radio = ttk.Radiobutton(file_row, text='jpeg', variable=file_info.image_mime, value='image/jpeg')
+    png_radio = ttk.Radiobutton(file_row, text='png', variable=file_info.image_mime, value='image/png')
+    jpeg_radio.pack(side='left', padx=5)
+    png_radio.pack(side='left', padx=5)
 
+    # submission button
+    mutate_btn = ttk.Button(
+        tab1,
+        text='mutate',
+        command=lambda: mutate_mp3_files(vars=file_info)
+        )
+    mutate_btn.pack(pady=10)
 
     # pack the notebook widget so it fills the window
     notebook.pack(expand=True, fill='both')
@@ -67,3 +84,11 @@ def select_file(btn: ttk.Button, vars: FileManipulationVariables):
         vars.album_cover_path = file_path
         btn.config(text='done!', state='disabled')
         print(vars.album_cover_path)
+
+
+def mutate_mp3_files(vars: FileManipulationVariables):
+    set_mp3_covers(
+        mp3_directory_path=vars.album_directory_path,
+        cover_path=vars.album_cover_path,
+        mime=vars.image_mime.get()
+    )
