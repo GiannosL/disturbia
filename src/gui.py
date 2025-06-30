@@ -2,10 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from src import FileManipulationVariables
+from src.player import get_music_player
 from src.album_cover import set_mp3_covers
 
 
-def run_gui(window_x: int = 400, window_y: int = 300):
+def run_gui(window_x: int = 800, window_y: int = 600):
     # create application window
     root = tk.Tk()
     root.title('disturbia')
@@ -22,6 +23,7 @@ def run_gui(window_x: int = 400, window_y: int = 300):
     notebook.add(tab1, text='album')
 
     # ==== tab 0 content ====
+    get_music_player(frame=tab0)
 
     # ==== tab 1 content ====
     file_info = FileManipulationVariables()

@@ -1,0 +1,142 @@
+import pygame
+import tkinter as tk
+from tkinter import ttk
+from pathlib import Path
+from tkinter import filedialog
+from typing import List
+
+
+pygame.mixer.init()
+
+
+class MusicPlayer:
+    def __init__(self):
+        self.index = 0
+        self.playlist: List[Path] = []
+        self.volume = 50
+        self.is_paused = False
+        self.current_song = ''
+        pygame.mixer.music.set_volume(self.volume / 100)
+
+    def add_playlist(self, play_list: List[Path]):
+        self.playlist = play_list
+        if self.playlist:
+            self.load_song(self.index)
+        #
+        print()
+        for el in play_list:
+            print(el.name[:-4])
+        print()
+
+    def load_song(self, i: int):
+        if 0 <= i < len(self.playlist):
+            song_path = self.playlist[i]
+            pygame.mixer.music.load(str(song_path))
+            self.current_song = song_path.stem
+        else:
+            print("Invalid index.")
+
+    def play(self):
+        if self.is_paused:
+            pygame.mixer.music.unpause()
+        else:
+            pygame.mixer.music.play()
+
+    def pause(self):
+        if self.is_playing():
+            pygame.mixer.music.pause()
+            self.is_paused = True
+
+    def stop(self):
+        pygame.mixer.music.stop()
+
+    def next_song(self):
+        if self.playlist:
+            self.stop()
+            self.index = (self.index + 1) % len(self.playlist)
+            self.load_song(self.index)
+            self.play()
+
+    def prev_song(self):
+        if self.playlist:
+            self.stop()
+            self.index = (self.index - 1) % len(self.playlist)
+            self.load_song(self.index)
+            self.play()
+
+    def set_volume(self, value: int):
+        self.volume = value
+        pygame.mixer.music.set_volume(value / 100)
+
+    def is_playing(self):
+        return pygame.mixer.music.get_busy()
+
+
+def get_music_player(frame: ttk.Frame, btn_width: int = 10):
+    # load songs from music player
+    music_player = MusicPlayer()
+
+    #
+    controls_frame = tk.Frame(frame)
+    controls_frame.pack(pady=20)
+    #
+    def update_label(mp: MusicPlayer):
+        album_name = load_songs(mp=mp)
+        album_name_label.config(text=album_name)
+
+    album_name_label = tk.Label(
+        controls_frame,
+        text='select album'
+    )
+    album_name_label.pack()
+    #
+    load_button = ttk.Button(
+        controls_frame, 
+        text='load', 
+        width=btn_width,
+        command=lambda: update_label(mp=music_player)
+        )
+    prev_button = ttk.Button(
+        controls_frame,
+        text='previous', 
+        width=btn_width, 
+        command=music_player.prev_song
+        )
+    next_button = ttk.Button(
+        controls_frame, 
+        text='next', 
+        width=btn_width,
+        command=music_player.next_song
+        )
+    play_button = ttk.Button(
+        controls_frame, 
+        text='play', 
+        width=btn_width,
+        command=music_player.play
+        )
+    pause_button = ttk.Button(
+        controls_frame, 
+        text='pause', 
+        width=btn_width,
+        command=music_player.stop
+        )
+    
+    # set buttons
+    load_button.pack(side=tk.LEFT, padx=5, pady=10)
+    prev_button.pack(side=tk.LEFT, padx=5, pady=10)
+    next_button.pack(side=tk.LEFT, padx=5, pady=10)
+    play_button.pack(side=tk.LEFT, padx=5, pady=10)
+    pause_button.pack(side=tk.LEFT, padx=5, pady=10)
+
+
+def load_songs(mp: MusicPlayer) -> str:
+    my_files = filedialog.askdirectory(
+        title='select album folder',
+        )
+    if my_files:
+        my_files = Path(my_files)
+        playlist = sorted(my_files.glob("*.mp3"))
+        #    
+        if playlist:
+            mp.add_playlist(playlist)
+            return str(my_files.name)

@@ -1,5 +1,6 @@
 from src.gui import run_gui
 
+
 def main():
     # intialize app GUI
     run_gui()
