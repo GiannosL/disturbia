@@ -128,6 +128,23 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
     play_button.pack(side=tk.LEFT, padx=5, pady=10)
     pause_button.pack(side=tk.LEFT, padx=5, pady=10)
 
+    # volume slider
+    def on_volume_change(value):
+        music_player.set_volume(int(float(value)))
+
+    volume_label = tk.Label(frame, text='volume')
+    volume_label.pack(pady=(20, 10))
+    volume_slider = tk.Scale(
+        frame,
+        from_=0,
+        to=100,
+        orient=tk.HORIZONTAL,
+        length=600,
+        command=on_volume_change
+    )
+    volume_slider.set(music_player.volume)
+    volume_slider.pack(pady=5)
+
 
 def load_songs(mp: MusicPlayer) -> str:
     my_files = filedialog.askdirectory(
