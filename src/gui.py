@@ -56,6 +56,21 @@ def run_gui(window_x: int = 800, window_y: int = 600):
     jpeg_radio.pack(side='left', padx=5)
     png_radio.pack(side='left', padx=5)
 
+    # year input date
+    file_info.year = tk.StringVar()
+    year_label = ttk.Label(tab1, text='Year:')
+    year_label.pack()
+    year_entry = ttk.Entry(tab1, textvariable=file_info.year)
+    year_entry.pack()
+    # ...existing code...
+    def mutate_mp3_files(vars: FileManipulationVariables):
+        set_mp3_covers(
+            mp3_directory_path=vars.album_directory_path,
+            cover_path=vars.album_cover_path,
+            mime=vars.image_mime.get(),
+            year=vars.year.get()
+        )
+
     # submission button
     mutate_btn = ttk.Button(
         tab1,
