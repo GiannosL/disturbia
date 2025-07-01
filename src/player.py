@@ -1,10 +1,12 @@
 import pygame
+import mutagen
 import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
 from tkinter import filedialog
 from typing import List
-
+from PIL import Image, ImageTk
+from mutagen.id3 import ID3, APIC
 
 pygame.mixer.init()
 
@@ -72,6 +74,21 @@ class MusicPlayer:
         return pygame.mixer.music.get_busy()
 
 
+def get_album_art(song_path: Path):
+    try:
+        audio = mutagen.File(song_path)
+        if audio is not None and 'APIC:' in audio.tags:
+            apic = audio.tags['APIC:']  # ID3v2.3+
+            return apic.data
+        elif audio is not None and isinstance(audio.tags, ID3):
+            for tag in audio.tags.values():
+                if isinstance(tag, APIC):
+                    return tag.data
+    except Exception as e:
+        print(f"Error loading album art: {e}")
+    return None
+
+
 def get_music_player(frame: ttk.Frame, btn_width: int = 10):
     # load songs from music player
     music_player = MusicPlayer()
@@ -84,6 +101,7 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
     def update_label(mp: MusicPlayer):
         album_name = load_songs(mp=mp)
         album_name_label.config(text=album_name)
+        update_song_label()
 
     album_name_label = tk.Label(
         controls_frame,
@@ -96,13 +114,46 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
         controls_frame,
         text='no song loaded'
     )
-    song_name_label.pack(pady=(5, 40))
+    song_name_label.pack(pady=(5, 5))
+
+    # Album art label (image)
+    album_art_label = tk.Label(controls_frame)
+    album_art_label.pack(pady=(5, 40))
+
+    # Store reference to PhotoImage to avoid garbage collection
+    album_art_label.image = None
+
+    def update_album_art():
+        album_art_label.config(image='', text='')  # Clear previous
+        if music_player.playlist:
+            song_path = music_player.playlist[music_player.index]
+            art_data = get_album_art(song_path)
+            if art_data:
+                try:
+                    from io import BytesIO
+                    image = Image.open(BytesIO(art_data))
+                    image = image.resize((200, 200))
+                    photo = ImageTk.PhotoImage(image)
+                    album_art_label.config(image=photo)
+                    album_art_label.image = photo
+                except Exception as e:
+                    album_art_label.config(text='[No Image]')
+                    album_art_label.image = None
+            else:
+                album_art_label.config(text='[No Image]')
+                album_art_label.image = None
+        else:
+            album_art_label.config(text='[No Image]')
+            album_art_label.image = None
+
+
     #
     def update_song_label():
         if music_player.playlist:
             song_name_label.config(text=music_player.current_song)
         else:
             song_name_label.config(text='no song loaded')
+        update_album_art()
 
     #
     def next_song():
