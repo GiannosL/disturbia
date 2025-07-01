@@ -13,7 +13,7 @@ class MusicPlayer:
     def __init__(self):
         self.index = 0
         self.playlist: List[Path] = []
-        self.volume = 50
+        self.volume = 30
         self.is_paused = False
         self.current_song = ''
         pygame.mixer.music.set_volume(self.volume / 100)
@@ -79,7 +79,8 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
     #
     controls_frame = tk.Frame(frame)
     controls_frame.pack(pady=20)
-    #
+    
+    # album name label
     def update_label(mp: MusicPlayer):
         album_name = load_songs(mp=mp)
         album_name_label.config(text=album_name)
@@ -88,8 +89,38 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
         controls_frame,
         text='select album'
     )
-    album_name_label.pack()
+    album_name_label.pack(pady=(10, 5))
+
+    # song name label
+    song_name_label = tk.Label(
+        controls_frame,
+        text='no song loaded'
+    )
+    song_name_label.pack(pady=(5, 40))
     #
+    def update_song_label():
+        if music_player.playlist:
+            song_name_label.config(text=music_player.current_song)
+        else:
+            song_name_label.config(text='no song loaded')
+
+    #
+    def next_song():
+        music_player.next_song()
+        update_song_label()
+
+    def prev_song():
+        music_player.prev_song()
+        update_song_label()
+
+    def play_song():
+        music_player.play()
+        update_song_label()
+
+    def stop_song():
+        music_player.stop()
+        update_song_label()
+
     load_button = ttk.Button(
         controls_frame, 
         text='load', 
@@ -100,25 +131,25 @@ def get_music_player(frame: ttk.Frame, btn_width: int = 10):
         controls_frame,
         text='previous', 
         width=btn_width, 
-        command=music_player.prev_song
+        command=prev_song
         )
     next_button = ttk.Button(
         controls_frame, 
         text='next', 
         width=btn_width,
-        command=music_player.next_song
+        command=next_song
         )
     play_button = ttk.Button(
         controls_frame, 
         text='play', 
         width=btn_width,
-        command=music_player.play
+        command=play_song
         )
     pause_button = ttk.Button(
         controls_frame, 
         text='pause', 
         width=btn_width,
-        command=music_player.stop
+        command=stop_song
         )
     
     # set buttons
